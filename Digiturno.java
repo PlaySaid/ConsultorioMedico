@@ -49,19 +49,16 @@ public class Digiturno {
     private static final String ARCHIVO_HISTORICO = "datos/historico.dat";
 
     /**
-     * TODO 1 - Tomar turno (generar turno y encolar según tipo de paciente).
-     * Este es el método que la clase Main invoca cuando el usuario elige
-     * la opción "1. Tomar turno" en el menú.
-     * Debes:
-     *  1) Crear un objeto Paciente con el nombre y tipo recibidos.
-     *  2) Agregarlo a la cola que corresponda según su tipo
-     *     (colaGeneral, colaPremium o colaPrioritaria), usando el
-     *     método encolar(...) de la clase Cola.
-     *  3) Apilarlo en pilaDeshacer (para poder deshacerlo más adelante),
-     *     usando el método apilar(...) de la clase Pila.
-     *  4) Imprimir en consola: "Turno generado: " + paciente
+     * Genera un nuevo turno para un paciente y lo agrega a la cola
+     * correspondiente según su tipo.
      *
-     * TAD que debes usar aquí: Cola.encolar() y Pila.apilar().
+     * Se utiliza una Cola porque los pacientes de cada categoría deben
+     * ser atendidos respetando el orden de llegada (FIFO). Además, el
+     * paciente se almacena en una Pila para permitir deshacer el último
+     * turno generado, aplicando el comportamiento LIFO de esta estructura.
+     *
+     * @param nombre nombre del paciente que solicita el turno.
+     * @param tipo categoría de atención del paciente.
      */
     public void generarTurno(String nombre, TipoPaciente tipo) {
         // TODO: completar este método
@@ -83,23 +80,15 @@ public class Digiturno {
     }
 
     /**
-     * TODO 2 - Atender al siguiente paciente.
-     * Debes aplicar esta regla de prioridad entre colas:
-     *   1) Si colaPrioritaria tiene pacientes, atiende al primero de esa cola.
-     *   2) Si colaPrioritaria está vacía pero colaPremium tiene pacientes,
-     *      atiende al primero de colaPremium.
-     *   3) Si ambas están vacías, atiende al primero de colaGeneral.
-     *   4) Si las tres están vacías, imprime: "No hay pacientes en espera."
+     * Atiende al siguiente paciente aplicando el orden de prioridad
+     * establecido para el consultorio.
      *
-     * El paciente atendido debe agregarse al histórico (Lista) y se debe
-     * imprimir: "Atendiendo a: " + paciente
+     * Primero se consulta la cola PRIORITARIA, luego la cola PREMIUM y
+     * finalmente la cola GENERAL. Dentro de cada categoría se utiliza
+     * una Cola, por lo que se conserva el orden FIFO de llegada.
      *
-     * Pista: usa estaVacia() para verificar cada cola, y desencolar()
-     * para retirar y obtener el primer elemento en un solo paso. Para
-     * agregar al histórico usa el método agregar(...) de la clase Lista.
-     *
-     * TAD que debes usar aquí: Cola.estaVacia(), Cola.desencolar() y
-     * Lista.agregar().
+     * El paciente retirado de la cola se agrega al histórico mediante
+     * la Lista, conservando el orden real en que fueron atendidos.
      */
     public void atenderSiguiente() {
         // TODO: completar este método
@@ -141,6 +130,7 @@ public class Digiturno {
 
         if(pilaDeshacer.estaVacia()){
             System.out.println("No hay turnos por deshacer");
+            return;
         }
 
         Paciente paciente = pilaDeshacer.desapilar();
@@ -156,34 +146,23 @@ public class Digiturno {
         }
 
         if (eliminado){
-            System.out.println("Turno deshecho para: "+paciente);
+            System.out.println("Turno deshecho para: "+ paciente);
         }else {
-            System.out.println("El turno ya había sido atendido, no se puede deshacer: "+paciente);
+            System.out.println("El turno ya había sido atendido, no se puede deshacer: "+ paciente);
         }
     }
 
     /**
-     * TODO 4 - Persistencia: lectura de archivo binario.
-     * Este método debe cargar los pacientes de prueba incluidos en el
-     * archivo "datos/datos_prueba.dat" para que la aplicación tenga datos
-     * con los cuales probarse sin necesidad de digitarlos manualmente.
+     * Carga los pacientes de prueba almacenados en el archivo binario
+     * datos/datos_prueba.dat.
      *
-     * Debes:
-     *  1) Verificar que el archivo exista (usa la clase File). Si no
-     *     existe, imprime un mensaje y termina el método.
-     *  2) Abrir un ObjectInputStream sobre un FileInputStream apuntando
-     *     al archivo ARCHIVO_DATOS_PRUEBA (usa try-with-resources).
-     *  3) Leer el objeto guardado con ois.readObject() y convertirlo
-     *     (cast) a Paciente[] (un arreglo, no una lista de java.util).
-     *  4) Por cada paciente del arreglo, llamar a generarTurno(nombre, tipo)
-     *     para que quede correctamente encolado (reutiliza tu propio
-     *     método del TODO 1). Puedes recorrer el arreglo con un for-each:
-     *     for (Paciente p : pacientesPrueba) { ... }
-     *  5) Capturar IOException y ClassNotFoundException e imprimir un
-     *     mensaje de error si algo falla.
+     * Se utiliza ObjectInputStream para recuperar el arreglo de pacientes
+     * serializado previamente. Cada paciente se registra mediante
+     * generarTurno(), reutilizando la misma lógica utilizada cuando un
+     * paciente solicita un turno manualmente.
      *
-     * Pista: el archivo binario contiene un único objeto serializado de
-     * tipo Paciente[], escrito con ObjectOutputStream.writeObject().
+     * De esta forma, los datos cargados quedan ubicados en la Cola
+     * correspondiente según el tipo de paciente.
      */
     public void cargarDatosPrueba() {
         // TODO: completar este método
@@ -206,21 +185,15 @@ public class Digiturno {
     }
 
     /**
-     * TODO 5 - Persistencia: escritura de archivo binario.
-     * Este método debe guardar el histórico de atención (el objeto
-     * Lista completo) en el archivo "datos/historico.dat", para que
-     * quede disponible incluso después de cerrar la aplicación.
+     * Guarda el histórico de pacientes atendidos en un archivo binario.
      *
-     * Debes:
-     *  1) Verificar que exista la carpeta "datos"; si no existe, crearla
-     *     (usa File y el método mkdirs()).
-     *  2) Abrir un ObjectOutputStream sobre un FileOutputStream apuntando
-     *     a ARCHIVO_HISTORICO (usa try-with-resources).
-     *  3) Escribir el histórico completo con oos.writeObject(historico).
-     *     (Esto funciona porque la clase Lista implementa Serializable).
-     *  4) Imprimir un mensaje confirmando cuántos registros se guardaron
-     *     (usa historico.tamano()).
-     *  5) Capturar IOException e imprimir un mensaje de error si algo falla.
+     * Se utiliza ObjectOutputStream para serializar la Lista completa
+     * del histórico y conservar los registros después de cerrar la
+     * aplicación. La carpeta datos se crea automáticamente si no existe.
+     *
+     * La Lista es la estructura utilizada para el histórico porque permite
+     * almacenar los pacientes en el orden en que fueron atendidos y
+     * recorrer posteriormente todos los registros.
      */
     public void guardarHistoricoBinario() {
         // TODO: completar este método
