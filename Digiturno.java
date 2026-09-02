@@ -65,6 +65,21 @@ public class Digiturno {
      */
     public void generarTurno(String nombre, TipoPaciente tipo) {
         // TODO: completar este método
+        Paciente paciente = new Paciente(nombre, tipo);
+        if (tipo == TipoPaciente.GENERAL){
+            colaGeneral.encolar(paciente);
+        }
+        if (tipo == TipoPaciente.PREMIUM){
+            colaPremium.encolar(paciente);
+        }
+        if(tipo == TipoPaciente.PRIORITARIO){
+            colaPrioritaria.encolar(paciente);
+        }
+
+        pilaDeshacer.apilar(paciente);
+
+        System.out.println("Turno generado a nombre de: "+paciente);
+
     }
 
     /**
@@ -88,6 +103,21 @@ public class Digiturno {
      */
     public void atenderSiguiente() {
         // TODO: completar este método
+        Paciente paciente;
+
+        if(!colaPrioritaria.estaVacia()) {
+            paciente = colaPrioritaria.desencolar();
+        } else if (!colaPremium.estaVacia()) {
+            paciente = colaPremium.desencolar();
+        } else if (!colaGeneral.estaVacia()) {
+            paciente = colaGeneral.desencolar();
+        } else {
+            System.out.println("No hay pacientes en espera!!");
+            return;
+        }
+
+        historico.agregar(paciente);
+        System.out.println("Atendiendo al paciente: "+paciente);
     }
 
     /**
