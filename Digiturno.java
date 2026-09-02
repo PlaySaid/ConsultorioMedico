@@ -138,6 +138,28 @@ public class Digiturno {
      */
     public void deshacerUltimoTurno() {
         // TODO: completar este método
+
+        if(pilaDeshacer.estaVacia()){
+            System.out.println("No hay turnos por deshacer");
+        }
+
+        Paciente paciente = pilaDeshacer.desapilar();
+
+        boolean eliminado = false;
+
+        if (paciente.getTipo() == TipoPaciente.GENERAL){
+            eliminado = colaGeneral.eliminar(paciente);
+        } else if (paciente.getTipo() == TipoPaciente.PREMIUM) {
+            eliminado = colaPremium.eliminar(paciente);
+        } else if (paciente.getTipo() == TipoPaciente.PRIORITARIO) {
+            eliminado = colaPrioritaria.eliminar(paciente);
+        }
+
+        if (eliminado){
+            System.out.println("Turno deshecho para: "+paciente);
+        }else {
+            System.out.println("El turno ya había sido atendido, no se puede deshacer: "+paciente);
+        }
     }
 
     /**
@@ -165,6 +187,22 @@ public class Digiturno {
      */
     public void cargarDatosPrueba() {
         // TODO: completar este método
+        File archivo = new File(ARCHIVO_DATOS_PRUEBA);
+
+        if (!archivo.exists()) {
+            System.out.println("El archivo de datos de prueba no existe.");
+            return;
+        }
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(ARCHIVO_DATOS_PRUEBA))) {
+
+            Paciente[] pacientesPrueba = (Paciente[]) ois.readObject();
+
+            for (Paciente p : pacientesPrueba) {
+                generarTurno(p.getNombre(), p.getTipo());
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Error al cargar los datos de prueba: " + e.getMessage());
+        }
     }
 
     /**
@@ -186,31 +224,42 @@ public class Digiturno {
      */
     public void guardarHistoricoBinario() {
         // TODO: completar este método
-    }
+        File carpeta = new File("datos");
+        if (!carpeta.exists()) {
+            carpeta.mkdirs();
+        } try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARCHIVO_HISTORICO))){
+            oos.writeObject(historico);
 
-    // ----- Métodos de visualización (ya implementados, no los modifiques) -----
-
-    public void mostrarHistorico() {
-        System.out.println("----- HISTORICO DE ATENCION -----");
-        if (historico.estaVacia()) {
-            System.out.println("Aun no se ha atendido a ningun paciente.");
-        } else {
-            int i = 1;
-            for (Paciente p : historico) {
-                System.out.println(i + ". " + p);
-                i++;
-            }
+            System.out.println("Histórico guardado correctamente. Registros: "
+                    + historico.tamano());
+        } catch (IOException e){
+            System.out.println("Error al guardar el histórico: " + e.getMessage());
         }
     }
 
-    public void mostrarEstadoColas() {
-        System.out.println("----- ESTADO ACTUAL DE LAS COLAS -----");
-        System.out.println("Prioritaria (" + colaPrioritaria.tamano() + "): " + colaPrioritaria);
-        System.out.println("Premium (" + colaPremium.tamano() + "): " + colaPremium);
-        System.out.println("General (" + colaGeneral.tamano() + "): " + colaGeneral);
-    }
+// ----- Métodos de visualización (ya implementados, no los modifiques) -----
 
-    // Esta clase NO tiene metodo main. Para probar los metodos que
-    // completes aqui, ejecuta la clase Main (Main.java), que ya
-    // esta lista y contiene el menu de consola.
+public void mostrarHistorico() {
+    System.out.println("----- HISTORICO DE ATENCION -----");
+    if (historico.estaVacia()) {
+        System.out.println("Aun no se ha atendido a ningun paciente.");
+    } else {
+        int i = 1;
+        for (Paciente p : historico) {
+            System.out.println(i + ". " + p);
+            i++;
+        }
+    }
+}
+
+public void mostrarEstadoColas() {
+    System.out.println("----- ESTADO ACTUAL DE LAS COLAS -----");
+    System.out.println("Prioritaria (" + colaPrioritaria.tamano() + "): " + colaPrioritaria);
+    System.out.println("Premium (" + colaPremium.tamano() + "): " + colaPremium);
+    System.out.println("General (" + colaGeneral.tamano() + "): " + colaGeneral);
+}
+
+// Esta clase NO tiene metodo main. Para probar los metodos que
+// completes aqui, ejecuta la clase Main (Main.java), que ya
+// esta lista y contiene el menu de consola.
 }
