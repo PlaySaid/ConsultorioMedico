@@ -110,19 +110,19 @@ public class Digiturno {
     }
 
     /**
-     * TODO 3 - Deshacer el último turno generado.
-     * Debes:
-     *  1) Verificar que pilaDeshacer no esté vacía (estaVacia()); si lo
-     *     está, imprime "No hay turnos para deshacer." y termina el método.
-     *  2) Sacar el último paciente apilado con desapilar().
-     *  3) Intentar eliminarlo de la cola en la que había quedado, según
-     *     su tipo (colaGeneral, colaPremium o colaPrioritaria), usando
-     *     el método eliminar(objeto) de la clase Cola.
-     *  4) Si eliminar() devuelve true, imprime: "Turno deshecho: " + paciente
-     *     Si devuelve false (ya fue atendido y no está en ninguna cola),
-     *     imprime: "El turno ya había sido atendido, no se puede deshacer: " + paciente
+     * Deshace el último turno generado que aún se encuentra en espera.
      *
-     * TAD que debes usar aquí: Pila.estaVacia(), Pila.desapilar() y
+     * Se utiliza la Pila porque su comportamiento LIFO permite recuperar
+     * el último turno generado antes que los anteriores. Una vez obtenido
+     * el paciente, se intenta eliminar de la Cola correspondiente según
+     * su tipo de atención.
+     *
+     * Si la pila está vacía, no existe ningún turno pendiente de deshacer
+     * y el método finaliza sin realizar ninguna operación. Si el turno
+     * ya fue atendido y no se encuentra en su cola, se informa al usuario
+     * que no puede ser deshecho.
+     *
+     * TAD utilizados: Pila.estaVacia(), Pila.desapilar() y
      * Cola.eliminar().
      */
     public void deshacerUltimoTurno() {
